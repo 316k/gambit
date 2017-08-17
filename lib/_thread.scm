@@ -239,7 +239,7 @@
 (define current-readtable
   ##current-readtable)
 
-(##open-all-predefined)
+(macro-open-all-predefined)
 
 (define ##current-input-port
   (##make-parameter

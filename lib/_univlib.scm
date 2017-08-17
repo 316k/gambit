@@ -1293,7 +1293,7 @@ function g_os_device_process_status(dev_scm) {
    "g_os_port_encode_chars(@1@)"
    port))
 
-(##open-all-predefined)
+(macro-open-all-predefined)
 
 ))
 
@@ -1411,7 +1411,5 @@ function g_os_device_process_status(dev_scm) {
 ;;;----------------------------------------------------------------------------
 
 (##load-vm)
-
-(##exit)
 
 ;;;============================================================================

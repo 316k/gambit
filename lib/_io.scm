@@ -8520,16 +8520,6 @@
 (define-prim (console-port)
   ##console-port)
 
-(define-prim (##open-all-predefined)
-  (set! ##stdin-port
-        (##open-predefined (macro-direction-in)    '(stdin)   -1))
-  (set! ##stdout-port
-        (##open-predefined (macro-direction-out)   '(stdout)  -2))
-  (set! ##stderr-port
-        (##open-predefined (macro-direction-out)   '(stderr)  -3))
-  (set! ##console-port
-        (##open-predefined (macro-direction-inout) '(console) -4)))
-
 ;;;----------------------------------------------------------------------------
 
 (define-prim (##make-filepos line col char-count)
@@ -13798,13 +13788,13 @@
 
 ;;; Setup readtable according to program's script line.
 
-(let* ((program-script-line
-        (##vector-ref ##program-descr 2))
-       (language-and-tail
-        (##extract-language-and-tail program-script-line)))
-  (if language-and-tail
-      (let ((language (##car language-and-tail)))
-        (##readtable-setup-for-language! ##main-readtable language)
-        (##main-set! (##start-main language)))))
+;; (let* ((program-script-line
+;;         (##vector-ref ##program-descr 2))
+;;        (language-and-tail
+;;         (##extract-language-and-tail program-script-line)))
+;;   (if language-and-tail
+;;       (let ((language (##car language-and-tail)))
+;;         (##readtable-setup-for-language! ##main-readtable language)
+;;         (##main-set! (##start-main language)))))
 
 ;;;============================================================================

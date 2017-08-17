@@ -939,6 +939,13 @@
 (##define-macro (macro-no-show-console) 0)
 (##define-macro (macro-default-show-console) `(macro-show-console))
 
+(##define-macro (macro-open-all-predefined)
+  `(begin
+     (define ##stdin-port   (##open-predefined (macro-direction-in)    '(stdin)   -1))
+     (define ##stdout-port  (##open-predefined (macro-direction-out)   '(stdout)  -2))
+     (define ##stderr-port  (##open-predefined (macro-direction-out)   '(stderr)  -3))
+     (define ##console-port (##open-predefined (macro-direction-inout) '(console) -4))))
+
 (##define-macro (macro-default-server-address) `'#u8(127 0 0 1))
 
 (##define-macro (macro-default-port-number) #f)
