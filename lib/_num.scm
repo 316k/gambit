@@ -3700,6 +3700,9 @@ for a discussion of branch cuts.
       (macro-make-10^constants)
       #f))
 
+(macro-case-target
+ ((C)
+
 (define-prim (##flonum-printout v sign-prefix)
 
   ;; This algorithm is derived from the paper "Printing Floating-Point
@@ -3915,6 +3918,12 @@ for a discussion of branch cuts.
                             (##substring d 1 n)
                             "e"
                             (##number->string (##fx- e 1) 10))))))
+)
+(else
+
+(define-prim (##flonum-printout v sign-prefix))
+
+))
 
 (define-prim (##flonum->string x rad force-sign?)
 

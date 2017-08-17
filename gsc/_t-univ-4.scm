@@ -859,6 +859,13 @@
    (lambda (ctx return arg)
      (return (^bool #t)))))
 
+(univ-define-prim "##flonum-printout" #t
+  (make-translated-operand-generator
+   (lambda (ctx return v sign-prefix)
+     (return (^str->string
+              (^concat (^string->str sign-prefix)
+                       (^float-tostr (^flonum-unbox v))))))))
+
 ;;TODO: make variadic, complete, clean up and test
 (univ-define-prim "##flmax" #t
   (make-translated-operand-generator

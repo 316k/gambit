@@ -2161,6 +2161,19 @@
      (compiler-internal-error
       "univ-emit-float-toint, unknown target"))))
 
+(define (univ-emit-float-tostr ctx expr)
+  (case (target-name (ctx-target ctx))
+
+    ((js python php ruby)
+     (^tostr expr))
+
+    ((java)
+     (^call-member 'Float 'toString expr))
+
+    (else
+     (compiler-internal-error
+      "univ-emit-float-tostr, unknown target"))))
+
 (define (univ-emit-float-math ctx fn . params)
   (univ-emit-call-prim-aux
    ctx
