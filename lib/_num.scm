@@ -1382,7 +1382,7 @@
           0
           (if (##eq? (##negative? x) (##negative? y))
               r
-              (##+ r y)))))
+              (##ei+ r y)))))
 
   (define (inexact-modulo x y)
     (let ((exact-y (##inexact->exact y)))
@@ -1525,14 +1525,14 @@
                    (A_21 (gcd-matrix_21 A)) (A_22 (gcd-matrix_22 A))
                    (B_11 (gcd-matrix_11 B)) (B_12 (gcd-matrix_12 B))
                    (B_21 (gcd-matrix_21 B)) (B_22 (gcd-matrix_22 B)))
-               (make-gcd-matrix (##+ (##* A_11 B_11)
-                                     (##* A_12 B_21))
-                                (##+ (##* A_11 B_12)
-                                     (##* A_12 B_22))
-                                (##+ (##* A_21 B_11)
-                                     (##* A_22 B_21))
-                                (##+ (##* A_21 B_12)
-                                     (##* A_22 B_22)))))))
+               (make-gcd-matrix (##ei+ (##ei* A_11 B_11)
+                                       (##ei* A_12 B_21))
+                                (##ei+ (##ei* A_11 B_12)
+                                       (##ei* A_12 B_22))
+                                (##ei+ (##ei* A_21 B_11)
+                                       (##ei* A_22 B_21))
+                                (##ei+ (##ei* A_21 B_12)
+                                       (##ei* A_22 B_22)))))))
 
     (define (gcd-matrix-multiply-strassen A B)
       ;; from http://mathworld.wolfram.com/StrassenFormulas.html
@@ -1545,25 +1545,25 @@
                    (A_21 (gcd-matrix_21 A)) (A_22 (gcd-matrix_22 A))
                    (B_11 (gcd-matrix_11 B)) (B_12 (gcd-matrix_12 B))
                    (B_21 (gcd-matrix_21 B)) (B_22 (gcd-matrix_22 B)))
-               (let ((Q_1 (##* (##+ A_11 A_22) (##+ B_11 B_22)))
-                     (Q_2 (##* (##+ A_21 A_22) B_11))
-                     (Q_3 (##* A_11 (##- B_12 B_22)))
-                     (Q_4 (##* A_22 (##- B_21 B_11)))
-                     (Q_5 (##* (##+ A_11 A_12) B_22))
-                     (Q_6 (##* (##- A_21 A_11) (##+ B_11 B_12)))
-                     (Q_7 (##* (##- A_12 A_22) (##+ B_21 B_22))))
-                 (make-gcd-matrix (##+ (##+ Q_1 Q_4) (##- Q_7 Q_5))
-                                  (##+ Q_3 Q_5)
-                                  (##+ Q_2 Q_4)
-                                  (##+ (##+ Q_1 Q_3) (##- Q_6 Q_2))))))))
+               (let ((Q_1 (##ei* (##ei+ A_11 A_22) (##ei+ B_11 B_22)))
+                     (Q_2 (##ei* (##ei+ A_21 A_22) B_11))
+                     (Q_3 (##ei* A_11 (##ei- B_12 B_22)))
+                     (Q_4 (##ei* A_22 (##ei- B_21 B_11)))
+                     (Q_5 (##ei* (##ei+ A_11 A_12) B_22))
+                     (Q_6 (##ei* (##ei- A_21 A_11) (##ei+ B_11 B_12)))
+                     (Q_7 (##ei* (##ei- A_12 A_22) (##ei+ B_21 B_22))))
+                 (make-gcd-matrix (##ei+ (##ei+ Q_1 Q_4) (##ei- Q_7 Q_5))
+                                  (##ei+ Q_3 Q_5)
+                                  (##ei+ Q_2 Q_4)
+                                  (##ei+ (##ei+ Q_1 Q_3) (##ei- Q_6 Q_2))))))))
 
     (define (gcd-matrix-solve A y)
       (let ((y_1 (gcd-vector_1 y))
             (y_2 (gcd-vector_2 y)))
-        (make-gcd-vector (##- (##* y_1 (gcd-matrix_22 A))
-                              (##* y_2 (gcd-matrix_12 A)))
-                         (##- (##* y_2 (gcd-matrix_11 A))
-                              (##* y_1 (gcd-matrix_21 A))))))
+        (make-gcd-vector (##ei- (##ei* y_1 (gcd-matrix_22 A))
+                                (##ei* y_2 (gcd-matrix_12 A)))
+                         (##ei- (##ei* y_2 (gcd-matrix_11 A))
+                                (##ei* y_1 (gcd-matrix_21 A))))))
 
     (define (x>=2^n x n)
       (##fx< n (##integer-length x)))
@@ -1604,16 +1604,16 @@
               (M_12 (gcd-matrix_12 M))
               (M_21 (gcd-matrix_21 M))
               (M_22 (gcd-matrix_22 M)))
-          (make-gcd-matrix (##+ M_11 (##* q M_12))  M_12
-                           (##+ M_21 (##* q M_22))  M_22)))
+          (make-gcd-matrix (##ei+ M_11 (##ei* q M_12))  M_12
+                           (##ei+ M_21 (##ei* q M_22))  M_22)))
 
       (define (gcd-matrix-multiply-high M q)
         (let ((M_11 (gcd-matrix_11 M))
               (M_12 (gcd-matrix_12 M))
               (M_21 (gcd-matrix_21 M))
               (M_22 (gcd-matrix_22 M)))
-          (make-gcd-matrix M_11  (##+ (##* q M_11) M_12)
-                           M_21  (##+ (##* q M_21) M_22))))
+          (make-gcd-matrix M_11  (##ei+ (##ei* q M_11) M_12)
+                           M_21  (##ei+ (##ei* q M_21) M_22))))
 
       (if (or (##bignum? u)
               (##bignum? v))
@@ -1643,9 +1643,9 @@
                                 v
                                 #t))
                          (else
-                          (cont (gcd-matrix-multiply-low M (##- q 1))
+                          (cont (gcd-matrix-multiply-low M (##ei- q 1))
                                 u
-                                (##+ r u)
+                                (##ei+ r u)
                                 #t)))))
                 ((##< v u)
                  (let* ((qr (##exact-int.div u v))
@@ -1662,8 +1662,8 @@
                                 v
                                 #t))
                          (else
-                          (cont (gcd-matrix-multiply-high M (##- q 1))
-                                (##+ r v)
+                          (cont (gcd-matrix-multiply-high M (##ei- q 1))
+                                (##ei+ r v)
                                 v
                                 #t)))))
                 (else
@@ -1765,10 +1765,10 @@
                            (lambda (M alpha beta)
                              (let ((M-inverse-v_0 (gcd-matrix-solve M (make-gcd-vector a_0 b_0))))
                                (cont (if cont-needs-M? M gcd-matrix-identity)
-                                     (##+ (##arithmetic-shift alpha p)
-                                          (gcd-vector_1 M-inverse-v_0))
-                                     (##+ (##arithmetic-shift beta p)
-                                          (gcd-vector_2 M-inverse-v_0)))))))
+                                     (##ei+ (##arithmetic-shift alpha p)
+                                            (gcd-vector_1 M-inverse-v_0))
+                                     (##ei+ (##arithmetic-shift beta p)
+                                            (gcd-vector_2 M-inverse-v_0)))))))
                         (gcd-middle-step cont a b h m-prime cont-needs-M?))))))
              (cont gcd-matrix-identity
                    a
@@ -9292,35 +9292,35 @@ ___RESULT = result;
             (##extract-bit-field shift-bits 0 y)))
       (if (##eq? x y)
           (let ((high-term
-                 (##* y-high y-high))
+                 (##ei* y-high y-high))
                 (low-term
-                 (##* y-low y-low))
+                 (##ei* y-low y-low))
                 (mid-term
-                 (let ((arg (##- y-high y-low)))
-                   (##* arg arg))))
-            (##+ (##arithmetic-shift high-term (##fx* shift-bits 2))
-                 (##+ (##arithmetic-shift
-                       (##+ high-term
-                            (##- low-term mid-term))
-                       shift-bits)
-                      low-term)))
+                 (let ((arg (##ei- y-high y-low)))
+                   (##ei* arg arg))))
+            (##ei+ (##arithmetic-shift high-term (##fx* shift-bits 2))
+                   (##ei+ (##arithmetic-shift
+                           (##ei+ high-term
+                                  (##ei- low-term mid-term))
+                           shift-bits)
+                          low-term)))
           (let ((x-high
                  (##bignum.arithmetic-shift x (##fx- shift-bits)))
                 (x-low
                  (##extract-bit-field shift-bits 0 x)))
             (let ((high-term
-                   (##* x-high y-high))
+                   (##ei* x-high y-high))
                   (low-term
-                   (##* x-low y-low))
+                   (##ei* x-low y-low))
                   (mid-term
-                   (##* (##- x-high x-low)
-                        (##- y-high y-low))))
-              (##+ (##arithmetic-shift high-term (##fx* shift-bits 2))
-                   (##+ (##arithmetic-shift
-                         (##+ high-term
-                              (##- low-term mid-term))
-                         shift-bits)
-                        low-term)))))))
+                   (##ei* (##ei- x-high x-low)
+                          (##ei- y-high y-low))))
+              (##ei+ (##arithmetic-shift high-term (##fx* shift-bits 2))
+                     (##ei+ (##arithmetic-shift
+                             (##ei+ high-term
+                                    (##ei- low-term mid-term))
+                             shift-bits)
+                            low-term)))))))
 
   (define (mul x x-length y y-length) ;; x-length <= y-length
     (let ((x-width (##fx* x-length ##bignum.mdigit-width)))
@@ -9379,8 +9379,8 @@ ___RESULT = result;
                      (mul x x-length y y-length)
                      (mul y y-length x x-length))
                  (##arithmetic-shift
-                  (##* (possibly-unnormalized-bignum-arithmetic-shift x (##fx- x-low-bits))
-                       (possibly-unnormalized-bignum-arithmetic-shift y (##fx- y-low-bits)))
+                  (##ei* (possibly-unnormalized-bignum-arithmetic-shift x (##fx- x-low-bits))
+                         (possibly-unnormalized-bignum-arithmetic-shift y (##fx- y-low-bits)))
                   (##fx+ x-low-bits y-low-bits))))))))
 
 (define-prim (##bignum.arithmetic-shift x shift)
@@ -9555,7 +9555,7 @@ ___RESULT = result;
                               temp
                               (##fx- bits-to-shift))))
                        (if (##fx< (##first-bit-set temp) bits-to-shift)
-                           (##cons (##+ shifted-temp 1) bits)
+                           (##cons (##ei+ shifted-temp 1) bits)
                            (##cons shifted-temp bits))))))
 
             (let ((result (recip v bits)))
@@ -9745,9 +9745,9 @@ ___RESULT = result;
                 (extra-remainder
                  (##extract-bit-field v-first-bit-set 0 u)))
             (##cons (##car reduced-quotient)
-                    (##+ (##arithmetic-shift (##cdr reduced-quotient)
-                                             v-first-bit-set)
-                         extra-remainder)))
+                    (##ei+ (##arithmetic-shift (##cdr reduced-quotient)
+                                               v-first-bit-set)
+                           extra-remainder)))
           (if (##fx< v-length ##bignum.fft-mul-min-width)
               (naive-div u v)
               (let* ((u-length (##integer-length u))
@@ -9767,7 +9767,7 @@ ___RESULT = result;
                                     z
                                     (##fx- length-difference bits)))
                               (##fx- -3 length-difference))))
-                        (let ((rem (##- u (##* test-quotient v))))
+                        (let ((rem (##ei- u (##ei* test-quotient v))))
                           ;; I believe, and I haven't found any counterexamples in my tests
                           ;; to disprove it, that test-quotient can be off by at most +-1.
                           ;; I can't prove this, however, so we put in the following loops.
@@ -9779,8 +9779,8 @@ ___RESULT = result;
                           (cond ((##negative? rem)
                                  (let loop ((test-quotient test-quotient)
                                             (rem rem))
-                                   (let ((test-quotient (##- test-quotient 1))
-                                         (rem (##+ rem v)))
+                                   (let ((test-quotient (##ei- test-quotient 1))
+                                         (rem (##ei+ rem v)))
                                      (if (##negative? rem)
                                          (loop test-quotient rem)
                                          (##cons test-quotient rem)))))
@@ -9790,8 +9790,8 @@ ___RESULT = result;
                                 (else
                                  (let loop ((test-quotient test-quotient)
                                             (rem rem))
-                                   (let ((test-quotient (##+ test-quotient 1))
-                                         (rem (##- rem v)))
+                                   (let ((test-quotient (##ei+ test-quotient 1))
+                                         (rem (##ei- rem v)))
                                      (if (##< rem v)
                                          (##cons test-quotient rem)
                                          (loop test-quotient rem)))))))))))))))
@@ -9814,6 +9814,87 @@ ___RESULT = result;
 
 ;;; Exact integer operations
 ;;; ------------------------
+
+(define-prim (##ei+ x y)
+
+  (##define-macro (fixnum-overflow) `#f)
+
+  (macro-exact-int-dispatch-no-error x
+    (macro-exact-int-dispatch-no-error y
+      (or (##fx+? x y)
+          (macro-if-bignum
+           (##bignum.+ (##fixnum->bignum x) (##fixnum->bignum y))
+           (fixnum-overflow)))
+      (if (##fxzero? x)
+          y
+          (##bignum.+ (##fixnum->bignum x) y)))
+
+    (macro-exact-int-dispatch-no-error y ;; x = bignum
+      (if (##fxzero? y)
+          x
+          (##bignum.+ x (##fixnum->bignum y)))
+      (##bignum.+ x y))))
+
+(define-prim (##ei* x y)
+
+  (##define-macro (fixnum-overflow) `#f)
+
+  (macro-exact-int-dispatch-no-error x
+
+    (macro-exact-int-dispatch-no-error y ;; x = fixnum
+      (cond ((##fx= y 0)
+             0)
+            ((if (##fx= y -1)
+                 (##fx-? x)
+                 (##fx*? x y))
+             => (lambda (result) result))
+            (else
+             (macro-if-bignum
+              (##bignum.* (##fixnum->bignum x) (##fixnum->bignum y))
+              (fixnum-overflow))))
+      (cond ((##fxzero? x)
+             0)
+            ((##fx= x 1)
+             y)
+            ((##fx= x -1)
+             (##negate y))
+            (else
+             (##bignum.* (##fixnum->bignum x) y))))
+
+    (macro-exact-int-dispatch-no-error y ;; x = bignum
+      (cond ((##fx= y 0)
+             0)
+            ((##fx= y 1)
+             x)
+            ((##fx= y -1)
+             (##negate x))
+            (else
+             (##bignum.* x (##fixnum->bignum y))))
+      (##bignum.* x y))))
+
+(define-prim (##ei- x y)
+
+  (##define-macro (fixnum-overflow) `#f)
+
+  (macro-exact-int-dispatch-no-error x
+
+    (macro-exact-int-dispatch-no-error y ;; x = fixnum
+      (or (##fx-? x y)
+          (macro-if-bignum
+           (##bignum.- (##fixnum->bignum x) (##fixnum->bignum y))
+           (fixnum-overflow)))
+      (##bignum.- (##fixnum->bignum x) y))
+
+    (macro-exact-int-dispatch-no-error y ;; x = bignum
+      (if (##fxzero? y)
+          x
+          (##bignum.- x (##fixnum->bignum y)))
+      (##bignum.- x y))))
+
+(define-prim (##eiodd? x)
+  (macro-exact-int-dispatch-no-error x
+    (##fxodd? x)
+    (macro-bignum-odd? x)))
 
 (define (##exact-int.= x y)
   (##fx= 0 (##exact-int.compare x y)))
@@ -10057,8 +10138,8 @@ ___RESULT = result;
               (##cdr s-prime&r-prime)))
         (let* ((qu
                 (##exact-int.div
-                 (##+ (##arithmetic-shift r-prime length/4)
-                      (##extract-bit-field length/4 length/4 x))
+                 (##ei+ (##arithmetic-shift r-prime length/4)
+                        (##extract-bit-field length/4 length/4 x))
                  (##arithmetic-shift s-prime 1)
                  #t           ;; need-quotient?
                  #f))         ;; keep-dividend?
@@ -10067,15 +10148,15 @@ ___RESULT = result;
                (u
                 (##cdr qu)))
           (let ((s
-                 (##+ (##arithmetic-shift s-prime length/4) q))
+                 (##ei+ (##arithmetic-shift s-prime length/4) q))
                 (r
-                 (##- (##+ (##arithmetic-shift u length/4)
-                           (##extract-bit-field length/4 0 x))
-                      (##* q q))))
+                 (##ei- (##ei+ (##arithmetic-shift u length/4)
+                               (##extract-bit-field length/4 0 x))
+                        (##ei* q q))))
             (if (##negative? r)
-                (##cons (##- s 1)
-                        (##+ r
-                             (##- (##arithmetic-shift s 1) 1)))
+                (##cons (##ei- s 1)
+                        (##ei+ r
+                               (##ei- (##arithmetic-shift s 1) 1)))
                 (##cons s
                         r))))))))
 
@@ -10098,7 +10179,7 @@ ___RESULT = result;
     (##integer-sqrt x)))
 
 (define-prim (##exact-int.square n)
-  (##* n n))
+  (##ei* n n))
 
 ;;;----------------------------------------------------------------------------
 
@@ -10124,113 +10205,109 @@ ___RESULT = result;
   (macro-ratnum-denominator x))
 
 (define-prim (##ratnum.= x y)
-  (##declare (mostly-fixnum)
-             (standard-bindings))
-  (and (= (macro-ratnum-numerator x)
-          (macro-ratnum-numerator y))
-       (= (macro-ratnum-denominator x)
-          (macro-ratnum-denominator y))))
+  (and (macro-mostly-fixnum-= (macro-ratnum-numerator x)
+                              (macro-ratnum-numerator y))
+       (macro-mostly-fixnum-= (macro-ratnum-denominator x)
+                              (macro-ratnum-denominator y))))
 
 (define-prim (##ratnum.< x y)
-  (##declare (mostly-fixnum)
-             (standard-bindings))
-  (< (* (macro-ratnum-numerator x)
-        (macro-ratnum-denominator y))
-     (* (macro-ratnum-denominator x)
-        (macro-ratnum-numerator y))))
+  (macro-mostly-fixnum-< (macro-mostly-fixnum-* (macro-ratnum-numerator x)
+                                                (macro-ratnum-denominator y))
+                         (macro-mostly-fixnum-* (macro-ratnum-denominator x)
+                                                (macro-ratnum-numerator y))))
 
 (define-prim (##ratnum.+ x y)
-  (##declare (mostly-fixnum)
-             (standard-bindings))
   (let ((p (macro-ratnum-numerator x))
         (q (macro-ratnum-denominator x))
         (r (macro-ratnum-numerator y))
         (s (macro-ratnum-denominator y)))
     (let ((d1 (##gcd q s)))
-      (if (eqv? d1 1)
-          (macro-ratnum-make (+ (* p s)
-                                (* r q))
-                             (* q s))
-          (let* ((s-prime (quotient s d1))
-                 (t (+ (* p s-prime)
-                       (* r (quotient q d1))))
+      (if (macro-mostly-fixnum-eqv? d1 1)
+          (macro-ratnum-make (macro-mostly-fixnum-+ (macro-mostly-fixnum-* p s)
+                                                    (macro-mostly-fixnum-* r q))
+                             (macro-mostly-fixnum-* q s))
+          (let* ((s-prime (macro-mostly-fixnum-quotient s d1))
+                 (t (macro-mostly-fixnum-+
+                     (macro-mostly-fixnum-* p s-prime)
+                     (macro-mostly-fixnum-* r (macro-mostly-fixnum-quotient q d1))))
                  (d2 (##gcd d1 t))
-                 (num (quotient t d2))
-                 (den (* (quotient q d2)
-                         s-prime)))
-            (if (eqv? den 1)
+                 (num (macro-mostly-fixnum-quotient t d2))
+                 (den (macro-mostly-fixnum-* (macro-mostly-fixnum-quotient q d2)
+                                             s-prime)))
+            (if (macro-mostly-fixnum-eqv? den 1)
                 num
                 (macro-ratnum-make num den)))))))
 
 (define-prim (##ratnum.- x y)
-  (##declare (mostly-fixnum)
-             (standard-bindings))
   (let ((p (macro-ratnum-numerator x))
         (q (macro-ratnum-denominator x))
         (r (macro-ratnum-numerator y))
         (s (macro-ratnum-denominator y)))
     (let ((d1 (##gcd q s)))
-      (if (eqv? d1 1)
-          (macro-ratnum-make (- (* p s)
-                                (* r q))
-                             (* q s))
-          (let* ((s-prime (quotient s d1))
-                 (t (- (* p s-prime)
-                       (* r (quotient q d1))))
+      (if (macro-mostly-fixnum-eqv? d1 1)
+          (macro-ratnum-make (macro-mostly-fixnum-- (macro-mostly-fixnum-* p s)
+                                                    (macro-mostly-fixnum-* r q))
+                             (macro-mostly-fixnum-* q s))
+          (let* ((s-prime (macro-mostly-fixnum-quotient s d1))
+                 (t (macro-mostly-fixnum--
+                     (macro-mostly-fixnum-* p s-prime)
+                     (macro-mostly-fixnum-* r (macro-mostly-fixnum-quotient q d1))))
                  (d2 (##gcd d1 t))
-                 (num (quotient t d2))
-                 (den (* (quotient q d2)
-                         s-prime)))
-            (if (eqv? den 1)
+                 (num (macro-mostly-fixnum-quotient t d2))
+                 (den (macro-mostly-fixnum-* (macro-mostly-fixnum-quotient q d2)
+                                             s-prime)))
+            (if (macro-mostly-fixnum-eqv? den 1)
                 num
                 (macro-ratnum-make num den)))))))
 
 (define-prim (##ratnum.* x y)
-  (##declare (mostly-fixnum)
-             (standard-bindings))
   (let ((p (macro-ratnum-numerator x))
         (q (macro-ratnum-denominator x))
         (r (macro-ratnum-numerator y))
         (s (macro-ratnum-denominator y)))
-    (if (eq? x y)
-        (macro-ratnum-make (square p) (square q))     ;; already in lowest form
+    (if (##eq? x y)
+        (macro-ratnum-make (macro-mostly-fixnum-square p) ;; already in lowest form
+                           (macro-mostly-fixnum-square q))
         (let* ((gcd-ps (##gcd p s))
                (gcd-rq (##gcd r q))
-               (num (* (quotient p gcd-ps) (quotient r gcd-rq)))
-               (den (* (quotient q gcd-rq) (quotient s gcd-ps))))
-          (if (eqv? den 1)
+               (num (macro-mostly-fixnum-* (macro-mostly-fixnum-quotient p gcd-ps)
+                                           (macro-mostly-fixnum-quotient r gcd-rq)))
+               (den (macro-mostly-fixnum-* (macro-mostly-fixnum-quotient q gcd-rq)
+                                           (macro-mostly-fixnum-quotient s gcd-ps))))
+          (if (macro-mostly-fixnum-eqv? den 1)
               num
               (macro-ratnum-make num den))))))
 
 (define-prim (##ratnum./ x y)
-  (##declare (mostly-fixnum)
-             (standard-bindings))
   (let ((p (macro-ratnum-numerator x))
         (q (macro-ratnum-denominator x))
         (r (macro-ratnum-denominator y))
         (s (macro-ratnum-numerator y)))
-    (if (eq? x y)
+    (if (##eq? x y)
         1
         (let* ((gcd-ps (##gcd p s))
                (gcd-rq (##gcd r q))
-               (num (* (quotient p gcd-ps) (quotient r gcd-rq)))
-               (den (* (quotient q gcd-rq) (quotient s gcd-ps))))
-          (if (negative? den)
-              (if (eqv? den -1)
-                  (- num)
-                  (macro-ratnum-make (- num) (- den)))
-              (if (eqv? den 1)
+               (num (macro-mostly-fixnum-* (macro-mostly-fixnum-quotient p gcd-ps)
+                                           (macro-mostly-fixnum-quotient r gcd-rq)))
+               (den (macro-mostly-fixnum-* (macro-mostly-fixnum-quotient q gcd-rq)
+                                           (macro-mostly-fixnum-quotient s gcd-ps))))
+          (if (macro-mostly-fixnum-negative? den)
+              (if (macro-mostly-fixnum-eqv? den -1)
+                  (macro-mostly-fixnum-negate num)
+                  (macro-ratnum-make (macro-mostly-fixnum-negate num)
+                                     (macro-mostly-fixnum-negate den)))
+              (if (macro-mostly-fixnum-eqv? den 1)
                   num
                   (macro-ratnum-make num den)))))))
 
 (define-prim (##ratnum.normalize num den)
-  (##declare (mostly-fixnum)
-             (standard-bindings))
   (let* ((x (##gcd num den))
-         (y (if (negative? den) (- x) x))
-         (num (quotient num y))
-         (den (quotient den y)))
-    (if (eqv? den 1)
+         (y (if (macro-mostly-fixnum-negative? den)
+                (macro-mostly-fixnum-negate x)
+                x))
+         (num (macro-mostly-fixnum-quotient num y))
+         (den (macro-mostly-fixnum-quotient den y)))
+    (if (macro-mostly-fixnum-eqv? den 1)
         num
         (macro-ratnum-make num den))))
 
@@ -10242,12 +10319,12 @@ ___RESULT = result;
         (den (macro-ratnum-denominator x)))
     (if (##eqv? den 2)
         (if round-half-away-from-zero?
-            (##arithmetic-shift (##+ num (if (##positive? num) 1 -1)) -1)
-            (##arithmetic-shift (##arithmetic-shift (##+ num 1) -2) 1))
+            (##arithmetic-shift (##ei+ num (if (##positive? num) 1 -1)) -1)
+            (##arithmetic-shift (##arithmetic-shift (##ei+ num 1) -2) 1))
         ;; here the ratnum cannot have fractional part = 1/2
         (##floor
          (##ratnum.normalize
-          (##+ (##arithmetic-shift num 1) den)
+          (##ei+ (##arithmetic-shift num 1) den)
           (##arithmetic-shift den 1))))))
 
 ))
@@ -10719,10 +10796,10 @@ ___RESULT = result;
              (##flonum-expt2 p)
              (f2 (if (and (##bit-set? next-bit-index x)
                           (or nonzero-fractional-part?
-                              (##odd? q)
+                              (##eiodd? q)
                               (##fx< (##first-bit-set x)
                                      next-bit-index)))
-                     (##+ q 1)
+                     (##ei+ q 1)
                      q)))))))
 
   (define (f2 x) ;; 0 <= x < 2^53
@@ -10770,7 +10847,7 @@ ___RESULT = result;
                      (new-z
                       (##fl* (##fl- z inexact-floor-z)
                              ##bignum.inexact-mdigit-base)))
-                (loop2 (##+ floor-z
+                (loop2 (##ei+ floor-z
                             (##arithmetic-shift result ##bignum.mdigit-width))
                        new-z
                        (##fx- i 1)))
@@ -10898,10 +10975,8 @@ ___RESULT = result;
     (if (and (##flonum? a) (##flonum? b)
              (##flonum? c) (##flonum? d))
         (##make-rectangular (##fl+ a c) (##fl+ b d))
-        (let ()
-          (##declare (standard-bindings)
-                     (mostly-fixnum))
-          (##make-rectangular (+ a c) (+ b d))))))
+        (##make-rectangular (macro-mostly-fixnum-+ a c)
+                            (macro-mostly-fixnum-+ b d)))))
 
 (define-prim (##cpxnum.* x y)
   (let ((a (macro-cpxnum-real x)) (b (macro-cpxnum-imag x))
@@ -10910,21 +10985,18 @@ ___RESULT = result;
              (##flonum? c) (##flonum? d))
         (##make-rectangular (##fl- (##fl* a c) (##fl* b d))
                             (##fl+ (##fl* a d) (##fl* b c)))
-        (let ()
-          (##declare (standard-bindings)
-                     (mostly-fixnum))
-          (##make-rectangular (- (* a c) (* b d))
-                              (+ (* a d) (* b c)))))))
+        (##make-rectangular (macro-mostly-fixnum-- (macro-mostly-fixnum-* a c)
+                                                   (macro-mostly-fixnum-* b d))
+                            (macro-mostly-fixnum-+ (macro-mostly-fixnum-* a d)
+                                                   (macro-mostly-fixnum-* b c))))))
+
 (define-prim (##cpxnum.- x y)
   (let ((a (macro-cpxnum-real x)) (b (macro-cpxnum-imag x))
         (c (macro-cpxnum-real y)) (d (macro-cpxnum-imag y)))
     (if (and (##flonum? a) (##flonum? b)
              (##flonum? c) (##flonum? d))
         (##make-rectangular (##fl- a c) (##fl- b d))
-        (let ()
-          (##declare (standard-bindings)
-                     (mostly-fixnum))
-          (##make-rectangular (- a c) (- b d))))))
+        (##make-rectangular (macro-mostly-fixnum-- a c) (macro-mostly-fixnum-- b d)))))
 
 
 (define-prim (##cpxnum./ x y)

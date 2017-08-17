@@ -636,4 +636,60 @@
           (##real-part x)
           x)))))
 
+(##define-macro (macro-mostly-fixnum-+ x y)
+  `(let ((x ,x) (y ,y))
+     (or (and (##fixnum? x) (##fixnum? y) (##fx+? x y))
+         (##+ x y))))
+
+(##define-macro (macro-mostly-fixnum-- x y)
+  `(let ((x ,x) (y ,y))
+     (or (and (##fixnum? x) (##fixnum? y) (##fx-? x y))
+         (##- x y))))
+
+(##define-macro (macro-mostly-fixnum-negate x)
+  `(let ((x ,x))
+     (if (##fixnum? x)
+         (##fx- x)
+         (##negate x))))
+
+(##define-macro (macro-mostly-fixnum-* x y)
+  `(let ((x ,x) (y ,y))
+     (or (and (##fixnum? x) (##fixnum? y) (##fx*? x y))
+         (##* x y))))
+
+(##define-macro (macro-mostly-fixnum-square x)
+  `(let ((x ,x))
+     (or (and (##fixnum? x) (##fxsquare? x))
+         (##square x))))
+
+(##define-macro (macro-mostly-fixnum-quotient x y)
+  `(let ((x ,x) (y ,y))
+     (if (and (##fixnum? x) (##fixnum? y))
+         (##fxquotient x y)
+         (##quotient x y))))
+
+(##define-macro (macro-mostly-fixnum-= x y)
+  `(let ((x ,x) (y ,y))
+     (if (and (##fixnum? x) (##fixnum? y))
+         (##fx= x y)
+         (##= x y))))
+
+(##define-macro (macro-mostly-fixnum-< x y)
+  `(let ((x ,x) (y ,y))
+     (if (and (##fixnum? x) (##fixnum? y))
+         (##fx< x y)
+         (##< x y))))
+
+(##define-macro (macro-mostly-fixnum-negative? x)
+  `(let ((x ,x))
+     (if (##fixnum? x)
+         (##fxnegative? x)
+         (##negative? x))))
+
+(##define-macro (macro-mostly-fixnum-eqv? x y)
+  `(let ((x ,x) (y ,y))
+     (if (and (##fixnum? x) (##fixnum? y))
+         (##fx= x y)
+         (##eqv? x y))))
+
 ;;;============================================================================
