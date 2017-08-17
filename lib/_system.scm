@@ -1635,8 +1635,7 @@
                       (##univ-table-make-hashtable (##not (##not weak-keys))
                                                    (##not (##not weak-values)))
                       (##fx+ (if weak-keys 1 0)
-                             (if weak-values 2 0))
-))
+                             (if weak-values 2 0))))
 
   (check-test 0))
 
