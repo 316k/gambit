@@ -2612,58 +2612,6 @@ Ruby:
     (else
      (compiler-internal-error
       "univ-emit-float-ilogb, unknown target"))))
-#;
-(
-;; PHP Math functions
-abs
-acos
-acosh
-asin
-asinh
-atan2
-atan
-atanh
-base_ convert
-bindec
-ceil
-cos
-cosh
-decbin
-dechex
-decoct
-deg2rad
-exp
-expm1
-floor
-fmod
-getrandmax
-hexdec
-hypot
-is_ finite
-is_ infinite
-is_ nan
-lcg_ value
-log10
-log1p
-log
-max
-min
-mt_ getrandmax
-mt_ rand
-mt_ srand
-octdec
-pi
-pow
-rad2deg
-rand
-round
-sin
-sinh
-sqrt
-srand
-tan
-tanh
-)
 
 (define (univ-emit-float-integer? ctx expr)
   (^&& (^not (^parens (^float-infinite? expr)))
