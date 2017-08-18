@@ -10348,10 +10348,10 @@ ___RESULT = result;
     (if (##eqv? den 2)
         (if round-half-away-from-zero?
             (##arithmetic-shift
-             (##macro-mostly-fixnum-ei+ num
-                                        (if (macro-mostly-fixnum-positive? num)
-                                            1
-                                            -1))
+             (macro-mostly-fixnum-ei+ num
+                                      (if (macro-mostly-fixnum-positive? num)
+                                          1
+                                          -1))
              -1)
             (##arithmetic-shift (##arithmetic-shift (macro-mostly-fixnum-ei+ num 1) -2) 1))
         ;; here the ratnum cannot have fractional part = 1/2
