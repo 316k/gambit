@@ -641,31 +641,65 @@
      (or (and (##fixnum? x) (##fixnum? y) (##fx+? x y))
          (##+ x y))))
 
+(##define-macro (macro-mostly-fixnum-ei+ x y)
+  `(let ((x ,x) (y ,y))
+     (or (and (##fixnum? x) (##fixnum? y) (##fx+? x y))
+         (##ei+ x y))))
+
 (##define-macro (macro-mostly-fixnum-- x y)
   `(let ((x ,x) (y ,y))
      (or (and (##fixnum? x) (##fixnum? y) (##fx-? x y))
          (##- x y))))
 
+(##define-macro (macro-mostly-fixnum-ei- x y)
+  `(let ((x ,x) (y ,y))
+     (or (and (##fixnum? x) (##fixnum? y) (##fx-? x y))
+         (##ei- x y))))
+
 (##define-macro (macro-mostly-fixnum-negate x)
   `(let ((x ,x))
-     (if (##fixnum? x)
-         (##fx- x)
+     (or (and (##fixnum? x) (##fx-? x))
          (##negate x))))
+
+(##define-macro (macro-mostly-fixnum-einegate x)
+  `(let ((x ,x))
+     (or (and (##fixnum? x) (##fx-? x))
+         (##einegate x))))
 
 (##define-macro (macro-mostly-fixnum-* x y)
   `(let ((x ,x) (y ,y))
-     (or (and (##fixnum? x) (##fixnum? y) (##fx*? x y))
+     (or (and (##fixnum? x)
+              (##fixnum? y)
+              (or (and (##eqv? y 0) 0)
+                  (and (##eqv? y -1) (##fx-? x))
+                  (##fx*? x y)))
          (##* x y))))
+
+(##define-macro (macro-mostly-fixnum-ei* x y)
+  `(let ((x ,x) (y ,y))
+     (or (and (##fixnum? x)
+              (##fixnum? y)
+              (or (and (##eqv? y 0) 0)
+                  (and (##eqv? y -1) (##fx-? x))
+                  (##fx*? x y)))
+         (##ei* x y))))
 
 (##define-macro (macro-mostly-fixnum-square x)
   `(let ((x ,x))
      (or (and (##fixnum? x) (##fxsquare? x))
          (##square x))))
 
+(##define-macro (macro-mostly-fixnum-eisquare x)
+  `(let ((x ,x))
+     (or (and (##fixnum? x) (##fxsquare? x))
+         (##eisquare x))))
+
 (##define-macro (macro-mostly-fixnum-quotient x y)
   `(let ((x ,x) (y ,y))
-     (if (and (##fixnum? x) (##fixnum? y))
-         (##fxquotient x y)
+     (if (and (##fixnum? x) (##fixnum? y) (##not (##eqv? y 0)))
+         (if (##eqv? y -1)
+             (or (##fx-? x) (##quotient x y))
+             (##fxquotient x y))
          (##quotient x y))))
 
 (##define-macro (macro-mostly-fixnum-= x y)
@@ -674,11 +708,23 @@
          (##fx= x y)
          (##= x y))))
 
+(##define-macro (macro-mostly-fixnum-ei= x y)
+  `(let ((x ,x) (y ,y))
+     (if (and (##fixnum? x) (##fixnum? y))
+         (##fx= x y)
+         (##ei= x y))))
+
 (##define-macro (macro-mostly-fixnum-< x y)
   `(let ((x ,x) (y ,y))
      (if (and (##fixnum? x) (##fixnum? y))
          (##fx< x y)
          (##< x y))))
+
+(##define-macro (macro-mostly-fixnum-ei< x y)
+  `(let ((x ,x) (y ,y))
+     (if (and (##fixnum? x) (##fixnum? y))
+         (##fx< x y)
+         (##ei< x y))))
 
 (##define-macro (macro-mostly-fixnum-negative? x)
   `(let ((x ,x))
@@ -686,10 +732,18 @@
          (##fxnegative? x)
          (##negative? x))))
 
-(##define-macro (macro-mostly-fixnum-eqv? x y)
-  `(let ((x ,x) (y ,y))
-     (if (and (##fixnum? x) (##fixnum? y))
-         (##fx= x y)
-         (##eqv? x y))))
+(##define-macro (macro-mostly-fixnum-einegative? x)
+  `(let ((x ,x))
+     (macro-if-bignum
+      (if (##fixnum? x)
+          (##fxnegative? x)
+          (##bignum.negative? x))
+      (##fxnegative? x))))
+
+(##define-macro (macro-mostly-fixnum-positive? x)
+  `(let ((x ,x))
+     (if (##fixnum? x)
+         (##fxpositive? x)
+         (##position? x))))
 
 ;;;============================================================================

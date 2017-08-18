@@ -130,7 +130,7 @@
 ;;; from _table.scm
 ;;;    (##table-equal? ...)
 ;;; from _num.scm
-;;;    (##exact-int.= ...)
+;;;    (##ei.= ...)
 ;;;    (##ratnum.= ...)
 ;;; from _std.scm
 ;;;    (##f32vector-equal? ...)
@@ -181,7 +181,7 @@
 (##define-macro (macro-numeqv?-otherwise obj1 obj2 otherwise)
   `(macro-number-dispatch ,obj1 ,otherwise
      (and (##fixnum? ,obj2) (##fx= ,obj1 ,obj2)) ;; obj1 = fixnum
-     (and (##bignum? ,obj2) (##exact-int.= ,obj1 ,obj2)) ;; obj1 = bignum
+     (and (##bignum? ,obj2) (##ei= ,obj1 ,obj2)) ;; obj1 = bignum
      (and (##ratnum? ,obj2) (##ratnum.= ,obj1 ,obj2)) ;; obj1 = ratnum
      (and (##flonum? ,obj2) (##fleqv? ,obj1 ,obj2)) ;; obj1 = flonum
      (and (##cpxnum? ,obj2) ;; obj1 = cpxnum
