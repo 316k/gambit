@@ -1819,6 +1819,8 @@
                       (^empty-dict '(dict scmobj scmobj))
                       '(public))))
         ((java)
+         ;; Java needs a ScmObj wrapper for the HashTable implementations
+         (^use-external-libs 'map-adt)
          (list
           (univ-field 'dict
                       '(generic Map scmobj scmobj)
@@ -2042,6 +2044,7 @@
              ctx
              "\n"
              (lambda (ctx)
+               (^use-external-libs 'weak-hashmap)
                (^ (^assign (^member (^this) 'dict)
                            (^if-expr (^and 'weak_keys 'weak_values)
                                      (^new (^rts-class-use 'hashtable_weak_keys_values))
@@ -2144,6 +2147,7 @@
          #f))))
 
     ((hashtable_weak_keys)
+     (^use-external-libs 'weak-reference)
      (rts-class
       'hashtable_weak_keys
       '() ;; properties
@@ -2241,6 +2245,7 @@
       '((generic K V)) ;; properties
       (case (target-name (ctx-target ctx)) ;; extends
         ((java)
+         (^use-external-libs 'weak-reference 'hashmap)
          '(prim |HashMap<K, V>|))
         (else
          'hashtable_base))
@@ -2355,6 +2360,7 @@
           (univ-method 'cleanup '(public) 'noresult '() '()
            (univ-emit-fn-body ctx "\n"
             (lambda (ctx)
+              (^use-external-libs 'set)
               (^ "Set<K> keySet = super.keySet();\n"
                  "Object[] keys = keySet.toArray(new Object[super.size()]);\n"
                  "for(Object key : keys)\n"
@@ -2388,6 +2394,7 @@
          #f))))
 
     ((hashtable_weak_keys_values)
+     (^use-external-libs 'weak-reference 'weak-hashmap)
      (rts-class
       'hashtable_weak_keys_values
       '((generic K V)) ;; properties
@@ -2511,6 +2518,7 @@
           (univ-method 'cleanup '(public) 'noresult '() '()
            (univ-emit-fn-body ctx "\n"
             (lambda (ctx)
+              (^use-external-libs 'set)
               (^ "doCleanupWhenComputingSize = true;\n"
                  "Set<K> keySet = super.keySet();\n"
                  "Object[] keys = keySet.toArray(new Object[super.size()]);\n"
@@ -4145,7 +4153,8 @@ EOF
              (^ (^expr-statement (^call-prim "print" obj))
                 (^expr-statement (^call-prim "print" "\"\\n\""))))
             ((java)
-             (^expr-statement (^call-prim (^member (^member 'System 'out) 'println) obj)))
+             (^use-external-libs 'system)
+             (^expr-statement (^call-member (^member 'System 'out) 'println obj)))
             (else
              (compiler-internal-error
               "univ-rtlib-feature println, unknown target")))))))
@@ -4195,6 +4204,7 @@ EOF
             ((python ruby php)
              (^expr-statement (^call-prim "exit" code)))
             ((java)
+             (^use-external-libs 'system)
              (^expr-statement (^call-prim (^member 'System 'exit) code)))
             (else
              (compiler-internal-error
@@ -5429,9 +5439,13 @@ EOF
   (case (target-name (ctx-target ctx))
     ((js)     (^call-prim (^member (^new 'Date) 'getTime)))
     ((php)    (^call-prim 'microtime (^bool #t)))
-    ((python) (^call-prim (^member 'time 'time)))
+    ((python)
+     (^use-external-libs 'time)
+     (^call-member 'time 'time))
     ((ruby)   (^new 'Time))
-    ((java)   (^call-prim (^member 'System 'currentTimeMillis)))))
+    ((java)
+     (^use-external-libs 'system)
+     (^call-member 'System 'currentTimeMillis))))
 
 (define (univ-entry-defs ctx mods-and-flags)
   (case (target-name (ctx-target ctx))
@@ -5587,37 +5601,70 @@ EOF
    (univ-single-line-comment-prefix targ-name)
    " Link info: "))
 
-(define (univ-external-libs ctx)
-  (case (target-name (ctx-target ctx))
+(define (univ-external-lib-name ctx name)
+  (case name
 
-    ((js php)
-     (^))
+    ((weak-reference)
+     (case (target-name (ctx-target ctx))
+       ((ruby python) 'weakref)
+       ((java) 'java.lang.ref.WeakReference)))
 
-    ((ruby)
-     (^ "require 'weakref'\n"))
+    ((arrays)
+     (case (target-name (ctx-target ctx))
+       ((java) 'java.util.Arrays)))
 
-    ((python)
-     (^ "from array import array\n"
-        "import ctypes\n"
-        "import time\n"
-        "import math\n"
-        "import sys\n"
-        "import weakref\n"
-        "\n"))
+    ((ctypes)
+     (case (target-name (ctx-target ctx))
+       ((python) 'ctypes)))
 
-    ((java)
-     (^ "import java.util.Arrays;\n"
-        "import java.util.HashMap;\n"
-        "import java.lang.System;\n"
-        "import java.util.Map;\n"
-        "import java.util.WeakHashMap;\n"
-        "import java.util.Set;\n"
-        "import java.lang.ref.WeakReference;\n"
-        "\n"))
+    ((time)
+     (case (target-name (ctx-target ctx))
+       ((python) 'time)))
+
+    ((system)
+     (case (target-name (ctx-target ctx))
+       ((python) 'sys)
+       ((java) 'java.lang.System)))
+
+    ((math)
+     (case (target-name (ctx-target ctx))
+       ((python) 'math)))
+
+    ((hashmap)
+     (case (target-name (ctx-target ctx))
+       ((java) 'java.util.HashMap)))
+
+    ((set)
+     (case (target-name (ctx-target ctx))
+       ((java) 'java.util.Set)))
+
+    ((map-adt)
+     (case (target-name (ctx-target ctx))
+       ((java) 'java.util.Map)))
+
+    ((weak-hashmap)
+     (case (target-name (ctx-target ctx))
+       ((java) 'java.util.WeakHashMap)))
 
     (else
      (compiler-internal-error
-      "univ-external-libs, unknown target"))))
+      "univ-external-lib-name, unknown external lib : " name))))
+
+(define (univ-external-libs ctx)
+  (let ((libs
+         (cons 'system ;; this is required in lib/_univlib.scm for python
+               (reverse
+                (resource-set-stack (ctx-external-libs ctx))))))
+    (map
+     (lambda (name)
+       (let ((name (univ-external-lib-name ctx name)))
+         (cond
+          ((symbol? name)
+           (^external-import (symbol->string name)))
+          ((string? name)
+           name)
+          (else ""))))
+     libs)))
 
 #|
 //JavaScript toString method:

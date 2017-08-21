@@ -615,7 +615,7 @@
 (univ-prim-proc-add! '("##univ-table-delete" (2) #f 0 0 (#f) extended))
 (univ-prim-proc-add! '("##univ-table-length" (1) #f 0 0 number extended))
 
-(univ-prim-proc-add! '("##flonum-printout" (2) #f 0 0 string extended))
+(univ-prim-proc-add! '("##flonum-printout-host" (2) #f 0 0 string extended))
 
 (define (univ-switch-testable? targ obj)
   ;;(pretty-print (list 'univ-switch-testable? 'targ obj))
@@ -695,6 +695,25 @@
     (else
      (compiler-internal-error
       "univ-emit-call-with-arg-array, unknown target"))))
+
+(define (univ-emit-external-import ctx name)
+  (case (target-name (ctx-target ctx))
+
+    ((js)
+     (^ "var " name " = require('" name "');\n"))
+
+    ((python)
+     (^ "import " name "\n"))
+
+    ((ruby)
+     (^ "require '" name "'\n"))
+
+    ((java)
+     (^ "import " name ";\n"))
+
+    (else
+     (compiler-internal-error
+      "univ-emit-external-import, unknown target"))))
 
 (define (univ-emit-var-declaration ctx type name #!optional (init #f))
   (case (target-name (ctx-target ctx))
@@ -870,6 +889,7 @@
           (^int univ-tag-bits)))
 
     ((python)
+     (^use-external-libs 'ctypes)
      (^>> (^member (^call-prim
                     "ctypes.c_int32"
                     (^<< (^parens expr)
@@ -1562,6 +1582,7 @@
     ((java)
      (^expr-statement
       (^call-prim
+       (^use-external-libs 'system)
        (^member 'System 'arraycopy)
        array1
        srcpos
@@ -1634,6 +1655,7 @@
                  (if (equal? expr2 0) expr3 (^+ expr2 expr3))))
 
     ((java)
+     (^use-external-libs 'arrays)
      (^call-prim (^member 'Arrays 'copyOfRange)
                  expr1
                  expr2
@@ -1755,7 +1777,8 @@
            (make-objs-used)
            (make-resource-set)
            (make-table)
-           (queue-empty)))
+           (queue-empty)
+           (make-resource-set)))
 
          (defs-procs
            (univ-dump-procs ctx procs))
@@ -1846,7 +1869,8 @@
               (map car (keep (lambda (x) (eq? (cdr x) 'rdwr)) glos))
               module-meta-info))
        "\n\n"
-       (univ-external-libs ctx))))
+       (univ-external-libs ctx)
+       "\n")))
 
 (define (univ-link-info-footer ctx)
   (univ-source-file-footer (target-name (ctx-target ctx))))
@@ -2006,7 +2030,8 @@
            (make-objs-used)
            (make-resource-set)
            (make-table)
-           (queue-empty)))
+           (queue-empty)
+           (make-resource-set)))
 
          (_
           (ctx-module-name-set! ctx (univ-rts-module-name ctx)))
@@ -2715,7 +2740,8 @@
                   (ctx-objs-used global-ctx)
                   (ctx-rtlib-features-used global-ctx)
                   (ctx-glo-used global-ctx)
-                  (ctx-decls global-ctx))))
+                  (ctx-decls global-ctx)
+                  (ctx-external-libs global-ctx))))
         (let ((x (proc-obj-code p)))
           (if (bbs? x)
               (scan-bbs ctx x)
@@ -2885,7 +2911,8 @@
          objs-used
          rtlib-features-used
          glo-used
-         decls)
+         decls
+         external-libs)
   (vector target
           semantics-changing-options
           semantics-preserving-options
@@ -2902,7 +2929,8 @@
           objs-used
           rtlib-features-used
           glo-used
-          decls))
+          decls
+          external-libs))
 
 (define (ctx-target ctx)                   (vector-ref ctx 0))
 (define (ctx-target-set! ctx x)            (vector-set! ctx 0 x))
@@ -2954,6 +2982,9 @@
 
 (define (ctx-decls ctx)                    (vector-ref ctx 16))
 (define (ctx-decls-set! ctx x)             (vector-set! ctx 16 x))
+
+(define (ctx-external-libs ctx)            (vector-ref ctx 17))
+(define (ctx-external-libs-set! ctx x)     (vector-set! ctx 17 x))
 
 (define (with-stack-base-offset ctx n proc)
   (let ((save (ctx-stack-base-offset ctx)))
@@ -3035,6 +3066,12 @@
       (use-resource-rd ctx resource))
   (if (or (eq? dir 'wr) (eq? dir 'rdwr))
       (use-resource-wr ctx resource)))
+
+(define (univ-use-external-libs ctx . libs)
+  (for-each
+   (lambda (lib)
+     (resource-set-add! (ctx-external-libs ctx) lib))
+   libs))
 
 (define (gvm-state-pollcount ctx)
   (^rts-field-use 'pollcount))

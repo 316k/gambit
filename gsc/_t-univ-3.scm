@@ -246,6 +246,7 @@
            (map-type type)))
 
       ((java)
+       (^use-external-libs 'hashmap)
        (cond ((and (pair? type) (eq? (car type) 'array))
               (^ (decl (cadr type)) "[]"))
              ((and (pair? type) (eq? (car type) 'dict))
@@ -2183,6 +2184,7 @@
       (^member 'Math fn))
 
      ((python)
+      (^use-external-libs 'math)
       (^member 'math fn))
 
      ((php)
@@ -2451,13 +2453,14 @@ Ruby:
      (^ expr1 " % " expr2))
 
     ((php)
-     (^ "fmod(" expr1 "," expr2 ")"))
+     (^call-prim 'fmod expr1 expr2))
 
     ((python)
-     (^ "math.fmod(" expr1 "," expr2 ")"))
+     (^use-external-libs 'math)
+     (^call-member 'math 'fmod expr1 expr2))
 
     ((ruby)
-     (^ expr1 ".remainder(" expr2 ")"))
+     (^call-member expr1 'remainder expr2))
 
     (else
      (compiler-internal-error
@@ -2569,6 +2572,7 @@ Ruby:
      (^call-prim (^rts-method-use 'ldexp) expr1 expr2))
 
     ((python)
+     (^use-external-libs 'math)
      (^call-prim (^member 'math 'ldexp) expr1 expr2))
 
     ;; TODO : possible loss of precision here
@@ -2594,6 +2598,7 @@ Ruby:
 
     ;; Since FLT_RADIX = 2, ilogb is one less than the exponent returned by frexp
     ((python)
+     (^use-external-libs 'math)
      (^parens (^ "math.frexp(" (^float-abs expr) ")[1] - 1")))
 
     ;; Most of the time, ilogb(expr) is equivalent to (int) floor(log2(abs(expr)))

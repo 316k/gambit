@@ -5,6 +5,12 @@
       `'()
       `(list ,@forms)))
 
+(define-macro (^external-import name)
+  `(univ-emit-external-import ctx ,name))
+
+(define-macro (^use-external-libs . libs)
+  `(univ-use-external-libs ctx ,@libs))
+
 (define-macro (^var-declaration type name #!optional (init #f))
   `(univ-emit-var-declaration ctx ,type ,name ,init))
 

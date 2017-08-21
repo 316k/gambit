@@ -244,6 +244,7 @@
             ") === " (^rts-field-use 'inttemp1) " && " (^fixnum-box (^rts-field-use 'inttemp2))))
 
         ((python)
+         (^use-external-libs 'ctypes)
          (^ "(lambda temp1: (lambda temp2: temp1 == temp2 and " (^fixnum-box "temp2") ")(ctypes.c_int32(temp1<<"
             univ-tag-bits
             ").value>>"
@@ -328,6 +329,7 @@
             ") === " (^rts-field-use 'inttemp1) " && " (^fixnum-box (^rts-field-use 'inttemp2))))
 
         ((python)
+         (^use-external-libs 'ctypes)
          (^ "(lambda temp1: (lambda temp2: temp1 == temp2 and " (^fixnum-box "temp2") ")(ctypes.c_int32(temp1<<"
             univ-tag-bits
             ").value>>"
@@ -412,6 +414,7 @@
             ") === " (^rts-field-use 'inttemp1) " && " (^fixnum-box (^rts-field-use 'inttemp2))))
 
         ((python)
+         (^use-external-libs 'ctypes)
          (^ "(lambda temp1: (lambda temp2: temp1 == temp2 and " (^fixnum-box "temp2") ")(ctypes.c_int32(temp1<<"
             univ-tag-bits
             ").value>>"
@@ -859,7 +862,7 @@
    (lambda (ctx return arg)
      (return (^bool #t)))))
 
-(univ-define-prim "##flonum-printout" #t
+(univ-define-prim "##flonum-printout-host" #t
   (make-translated-operand-generator
    (lambda (ctx return v sign-prefix)
      (return (^str->string
