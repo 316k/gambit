@@ -3275,8 +3275,9 @@
      (^ (^assign (^array-index (^bignum-digits arg1)
                                (^fixnum-unbox arg2))
                  (^cast* 'bigdigit
-                         (^bitnot (^array-index (^bignum-digits arg1)
-                                                (^fixnum-unbox arg2)))))
+                         (^+ univ-mdigit-base
+                             (^bitnot (^array-index (^bignum-digits arg1)
+                                                    (^fixnum-unbox arg2))))))
         (return arg1)))))
 
 ;;----------------------------------------------------------------------------
