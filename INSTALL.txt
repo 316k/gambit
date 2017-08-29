@@ -73,16 +73,14 @@ configure script to make sure that any stale .c files obtained from
 the repository are updated:
 
   % make current-gsc-boot
-  % make bootstrap
   % make bootclean
 
 The "make current-gsc-boot" builds the Gambit compiler that was
 current at the latest release and then uses it to compile the very
 latest sources of the compiler cloned from github.  The "make
-boostrap" uses that compiler to build itself again from sources (it
-creates up to date .c files from the .scm files).
-
-Then the system can be built by invoking "make":
+bootclean" then removes all the generated .c files so that they will
+be created using the current gsc-boot compiler.  Then the system can
+be built by invoking "make":
 
   % make
 
@@ -284,8 +282,11 @@ The configure options which are specific to the Gambit system are:
                           enables the support for the #.<expression> syntax
                           (requires: make bootstrap; make bootclean; make)
   --enable-bignum         support infinite precision integers
+                          (requires: make bootstrap; make bootclean; make)
   --enable-ratnum         support exact rational numbers
+                          (requires: make bootstrap; make bootclean; make)
   --enable-cpxnum         support complex numbers
+                          (requires: make bootstrap; make bootclean; make)
   --enable-rtlib-debug
                           cause the inclusion of all debugging information
                           in the code generated for the Scheme runtime library
@@ -321,6 +322,8 @@ The configure options which are specific to the Gambit system are:
                           compiles with support for having more than one
                           OS thread per Gambit VM (implies
                           --enable-thread-system)
+  --enable-smp            support SMP Scheme thread scheduler
+                          (requires: make bootstrap; make bootclean; make)
   --enable-max-processors=N
                           max number of processors per Gambit VM
                           (default is 64)

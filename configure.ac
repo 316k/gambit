@@ -913,6 +913,22 @@ AC_SUBST(CONF_SINGLE_MULTIPLE_THREADED_VMS)
 
 ###############################################################################
 #
+# Check if the SMP Scheme thread scheduler should be enabled.
+
+AC_ARG_ENABLE(smp,
+              AC_HELP_STRING([--enable-smp],
+                             [support SMP Scheme thread scheduler (default is NO)]),
+              ENABLE_SMP=$enableval,
+              ENABLE_SMP=no)
+
+if test "$ENABLE_SMP" = yes; then
+  RTLIB_COND_EXPAND_FEATURES="$RTLIB_COND_EXPAND_FEATURES(define-cond-expand-feature|enable-smp|)"
+else
+  RTLIB_COND_EXPAND_FEATURES="$RTLIB_COND_EXPAND_FEATURES(define-cond-expand-feature|disable-smp|)"
+fi
+
+###############################################################################
+#
 # Determine the maximum number of OS threads (processors) per
 # Gambit VM instance.
 
@@ -1577,6 +1593,8 @@ else
 
   AC_CHECK_FUNCS(hstrerror)
 
+  AC_CHECK_FUNCS(snprintf)
+
   case "$target_os" in
     # the OpenBSD test is always lowercase
     openbsd*)
@@ -1743,6 +1761,21 @@ fi
 
 AC_SUBST(CONF_THREAD_SYSTEM)
 AC_SUBST(CONF_THREAD_LOCAL_STORAGE_CLASS)
+
+# Check availability of WIN32 CONDITION_VARIABLE type.
+
+CONF_HAVE_CONDITION_VARIABLE="___DONT_HAVE_CONDITION_VARIABLE"
+
+if test "$OS_WIN32" = yes; then
+
+  AC_CHECK_TYPE([CONDITION_VARIABLE],
+                [CONF_HAVE_CONDITION_VARIABLE="___HAVE_CONDITION_VARIABLE"],
+                [],
+                [#include <windows.h>])
+
+fi
+
+AC_SUBST(CONF_HAVE_CONDITION_VARIABLE)
 
 ###############################################################################
 #

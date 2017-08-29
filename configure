@@ -828,6 +828,7 @@ DASH_fno_move_loop_invariants
 DASH_fno_trapping_math
 DASH_fschedule_insns2
 DASH_no_cpp_precomp
+CONF_HAVE_CONDITION_VARIABLE
 CONF_THREAD_LOCAL_STORAGE_CLASS
 CONF_THREAD_SYSTEM
 OS_WIN32
@@ -970,6 +971,7 @@ enable_poll
 enable_high_res_timing
 enable_multiple_vms
 enable_multiple_threaded_vms
+enable_smp
 enable_max_processors
 enable_thread_system
 enable_dynamic_tls
@@ -1707,6 +1709,7 @@ Optional Features:
   --enable-multiple-threaded-vms
                           support multiple OS threads per Gambit VM instance
                           (default is NO)
+  --enable-smp            support SMP Scheme thread scheduler (default is NO)
   --enable-max-processors=N
                           Max number of processors per Gambit VM instance
                           (default is 64)
@@ -5768,6 +5771,24 @@ fi
 
 ###############################################################################
 #
+# Check if the SMP Scheme thread scheduler should be enabled.
+
+# Check whether --enable-smp was given.
+if test "${enable_smp+set}" = set; then :
+  enableval=$enable_smp; ENABLE_SMP=$enableval
+else
+  ENABLE_SMP=no
+fi
+
+
+if test "$ENABLE_SMP" = yes; then
+  RTLIB_COND_EXPAND_FEATURES="$RTLIB_COND_EXPAND_FEATURES(define-cond-expand-feature|enable-smp|)"
+else
+  RTLIB_COND_EXPAND_FEATURES="$RTLIB_COND_EXPAND_FEATURES(define-cond-expand-feature|disable-smp|)"
+fi
+
+###############################################################################
+#
 # Determine the maximum number of OS threads (processors) per
 # Gambit VM instance.
 
@@ -8910,6 +8931,18 @@ fi
 done
 
 
+  for ac_func in snprintf
+do :
+  ac_fn_cxx_check_func "$LINENO" "snprintf" "ac_cv_func_snprintf"
+if test "x$ac_cv_func_snprintf" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SNPRINTF 1
+_ACEOF
+
+fi
+done
+
+
   case "$target_os" in
     # the OpenBSD test is always lowercase
     openbsd*)
@@ -9145,6 +9178,23 @@ $as_echo "$as_me:
 
 fi
 
+
+
+
+# Check availability of WIN32 CONDITION_VARIABLE type.
+
+CONF_HAVE_CONDITION_VARIABLE="___DONT_HAVE_CONDITION_VARIABLE"
+
+if test "$OS_WIN32" = yes; then
+
+  ac_fn_cxx_check_type "$LINENO" "CONDITION_VARIABLE" "ac_cv_type_CONDITION_VARIABLE" "#include <windows.h>
+"
+if test "x$ac_cv_type_CONDITION_VARIABLE" = xyes; then :
+  CONF_HAVE_CONDITION_VARIABLE="___HAVE_CONDITION_VARIABLE"
+fi
+
+
+fi
 
 
 

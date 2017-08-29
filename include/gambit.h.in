@@ -3140,6 +3140,12 @@ ___FIX((((___BIGMDOUBLEDIGIT)___BIGMFETCH(___BODY_AS(u,___tSUBTYPED),___INT(___B
 #define ___F64SQRT(x)___CLIBEXT(sqrt)(x)
 #define ___F64COPYSIGN(x,y)___EXT(___copysign)(x,y)
 
+#define ___F64TOSTRING(x) \
+(___W_HEAP_EXPR, \
+ ___temp=___EXT(___F64_to_STRING) (___PSP x), \
+ ___R_HEAP_EXPR, \
+ ___temp)
+
 /* IFJUMP-able operations */
 
 #define ___F64INTEGERP(x)(!___F64INFINITEP(x) && (x)==___F64FLOOR(x))
@@ -3687,6 +3693,7 @@ ___FIELD(___FIELD(thread,___THREAD_CONT),___CONTINUATION_FRAME) = frame;
   ___SET_STK(-___BREAK_FRAME_NEXT,___FIELD(cont,___CONTINUATION_FRAME)) \
   ___FIELD(cont,___CONTINUATION_FRAME) = ___END_OF_CONT_MARKER; \
   ___INTERRUPT_MASK_SET(___FIELD(___FIELD(thread,___THREAD_DENV),___DENV_INTERRUPT_MASK)); \
+  ___FIELD(thread,___THREAD_LAST_PROCESSOR) = ___CURRENTPROCESSOR; \
   ___CURRENTTHREADSET(thread) \
   ___SET_R0(___GSTATE->handler_break) \
 }
@@ -3764,11 +3771,12 @@ ___FIELD(___FIELD(thread,___THREAD_CONT),___CONTINUATION_FRAME) = frame;
 
 #define ___CONDVAR_NAME 10
 
-#define ___THREAD_CONT        21
-#define ___THREAD_DENV        22
-#define ___THREAD_DENV_CACHE1 23
-#define ___THREAD_DENV_CACHE2 24
-#define ___THREAD_DENV_CACHE3 25
+#define ___THREAD_CONT           23
+#define ___THREAD_DENV           24
+#define ___THREAD_DENV_CACHE1    25
+#define ___THREAD_DENV_CACHE2    26
+#define ___THREAD_DENV_CACHE3    27
+#define ___THREAD_LAST_PROCESSOR 33
 
 #define ___PROCESSOR_CURRENT_THREAD 14
 
@@ -4133,8 +4141,10 @@ switch((___pc-=___start)/(___LS*___WS)) \
 
 #define ___PSHEAP ___ps->hp
 #define ___D_HEAP register ___WORD *___hp;
-#define ___R_HEAP ___hp=___PSHEAP;
-#define ___W_HEAP ___PSHEAP=___hp;
+#define ___R_HEAP ___R_HEAP_EXPR;
+#define ___W_HEAP ___W_HEAP_EXPR;
+#define ___R_HEAP_EXPR ___hp=___PSHEAP
+#define ___W_HEAP_EXPR ___PSHEAP=___hp
 
 #define ___PSFP ___ps->fp
 #define ___D_FP register ___WORD *___fp;
@@ -7986,6 +7996,18 @@ typedef struct ___ticketlock_location
   } ___ticketlock_location;
 
 
+typedef struct ___mask_interrupts_state_struct
+  {
+    ___S32 content[8]; /* larger than needed to be safe */
+  } ___mask_interrupts_state;
+
+
+typedef ___mask_interrupts_state ___mask_all_interrupts_state;
+typedef ___mask_interrupts_state ___mask_user_interrupts_state;
+typedef ___mask_interrupts_state ___mask_heartbeat_interrupts_state;
+typedef ___mask_interrupts_state ___mask_child_interrupts_state;
+
+
 /*---------------------------------------------------------------------------*/
 
 /*
@@ -8942,6 +8964,10 @@ typedef struct ___global_state_struct
              double y),
             ());
 #endif
+    ___SCMOBJ (*___F64_to_STRING)
+       ___P((___PSD
+             double x),
+            ());
     ___S64 (*___S64_from_SM32_fn)
        ___P((___SM32 val),
             ());
@@ -10008,6 +10034,30 @@ typedef struct ___global_state_struct
             ());
     void (*___enable_interrupts_pstate)
        ___P((___processor_state ___ps),
+            ());
+    void (*___mask_all_interrupts_begin)
+       ___P((___mask_all_interrupts_state *state),
+            ());
+    void (*___mask_all_interrupts_end)
+       ___P((___mask_all_interrupts_state *state),
+            ());
+    void (*___mask_user_interrupts_begin)
+       ___P((___mask_user_interrupts_state *state),
+            ());
+    void (*___mask_user_interrupts_end)
+       ___P((___mask_user_interrupts_state *state),
+            ());
+    void (*___mask_heartbeat_interrupts_begin)
+       ___P((___mask_heartbeat_interrupts_state *state),
+            ());
+    void (*___mask_heartbeat_interrupts_end)
+       ___P((___mask_heartbeat_interrupts_state *state),
+            ());
+    void (*___mask_child_interrupts_begin)
+       ___P((___mask_child_interrupts_state *state),
+            ());
+    void (*___mask_child_interrupts_end)
+       ___P((___mask_child_interrupts_state *state),
             ());
 #ifndef ___DEBUG_ALLOC_MEM
     void *(*___alloc_mem)
@@ -11197,6 +11247,10 @@ ___IMP_FUNC(double,___pow)
          double y),
         ());
 #endif
+___IMP_FUNC(___SCMOBJ,___F64_to_STRING)
+   ___P((___PSD
+         double x),
+        ());
 ___IMP_FUNC(void,___setup_params_reset)
    ___P((___setup_params_struct *setup_params),
         ());
@@ -11338,6 +11392,42 @@ ___IMP_FUNC(void,___disable_interrupts_pstate)
         ());
 ___IMP_FUNC(void,___enable_interrupts_pstate)
    ___P((___processor_state ___ps),
+        ());
+#endif
+
+#ifndef ___INCLUDED_FROM_OS_SETUP
+___IMP_FUNC(void,___mask_all_interrupts_begin)
+   ___P((___mask_all_interrupts_state *state),
+        ());
+___IMP_FUNC(void,___mask_all_interrupts_end)
+   ___P((___mask_all_interrupts_state *state),
+        ());
+#endif
+
+#ifndef ___INCLUDED_FROM_OS_TTY
+___IMP_FUNC(void,___mask_user_interrupts_begin)
+   ___P((___mask_user_interrupts_state *state),
+        ());
+___IMP_FUNC(void,___mask_user_interrupts_end)
+   ___P((___mask_user_interrupts_state *state),
+        ());
+#endif
+
+#ifndef ___INCLUDED_FROM_OS_TIME
+___IMP_FUNC(void,___mask_heartbeat_interrupts_begin)
+   ___P((___mask_heartbeat_interrupts_state *state),
+        ());
+___IMP_FUNC(void,___mask_heartbeat_interrupts_end)
+   ___P((___mask_heartbeat_interrupts_state *state),
+        ());
+#endif
+
+#ifndef ___INCLUDED_FROM_OS_IO
+___IMP_FUNC(void,___mask_child_interrupts_begin)
+   ___P((___mask_child_interrupts_state *state),
+        ());
+___IMP_FUNC(void,___mask_child_interrupts_end)
+   ___P((___mask_child_interrupts_state *state),
         ());
 #endif
 

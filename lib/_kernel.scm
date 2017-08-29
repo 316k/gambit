@@ -934,19 +934,36 @@ end-of-code
 
      ___SCMOBJ unwind_destination = ___STK(2-___FRAME_SPACE(2));
 
-     if (!___FALSEP(___FIELD(unwind_destination,0))) /* first return? */
+#ifndef ___SINGLE_THREADED_VMS
+
+     if (!___FIXEQ(___FIELD(unwind_destination,1),
+                   ___FIX(___PROCESSOR_ID(___ps,___VMSTATE_FROM_PSTATE(___ps)))))
+       {
+         /* not the same processor that created frame */
+         ___COVER_RETURN_TO_C_HANDLER_WRONG_PROCESSOR;
+         ___SET_R0(___GSTATE->handler_return_to_c)
+         ___SET_R1(___FIELD(unwind_destination,1))
+         ___JUMPPRM(___SET_NARGS(1),
+                    ___PRMCELL(___G__23__23_c_2d_return_2d_on_2d_other_2d_processor.prm))
+       }
+     else
+
+#endif
+
+     if (___FALSEP(___FIELD(unwind_destination,0)))
+       {
+         /* not first return */
+         ___COVER_RETURN_TO_C_HANDLER_MULTIPLE_RETURN;
+         ___SET_R0(___GSTATE->handler_return_to_c)
+         ___JUMPPRM(___SET_NARGS(0),
+                    ___PRMCELL(___G__23__23_raise_2d_multiple_2d_c_2d_return_2d_exception.prm))
+       }
+     else
        {
          ___COVER_RETURN_TO_C_HANDLER_FIRST_RETURN;
          ___FRAME_STORE_RA(___GSTATE->handler_return_to_c)
          ___W_ALL
          ___throw_error (___PSP ___FIX(___UNWIND_C_STACK));  /* jump back inside ___call */
-       }
-     else
-       {
-         ___COVER_RETURN_TO_C_HANDLER_MULTIPLE_RETURN;
-         ___SET_R0(___GSTATE->handler_return_to_c)
-         ___JUMPPRM(___SET_NARGS(0),
-                    ___PRMCELL(___G__23__23_raise_2d_multiple_2d_c_2d_return_2d_exception.prm))
        }
 
 end-of-code
@@ -1350,25 +1367,41 @@ end-of-code
 
 ;;;----------------------------------------------------------------------------
 
-;; (##heartbeat-interval-set! seconds) sets the heartbeat interrupt
-;; interval to the time closest to "seconds" seconds (a flonum value).
-;; If "seconds" is negative, the heartbeat interrupt is turned off.  If
-;; "seconds" is zero, the smallest possible interval is used.  The
-;; actual interval in seconds is returned.
+;; The heartbeat is used to implement preemptive multithreading by
+;; generating interrupts at regular intervals. The procedure
+;; (##set-heartbeat-interval! seconds) sets the heartbeat
+;; interrupt interval to the time closest to "seconds" seconds (a
+;; flonum value). If "seconds" is negative, the heartbeat interrupt is
+;; turned off.  If "seconds" is zero, the smallest possible interval
+;; is used.  The procedure (##get-heartbeat-interval! u64vect i) is
+;; used to retrieve the current heartbeat interval.
 
-(define-prim (##heartbeat-interval-set! seconds)
+(define-prim (##get-heartbeat-interval! u64vect i)
   (##declare (not interrupts-enabled))
   (##c-code #<<end-of-code
 
-   ___FLONUM_VAL(___ARG2) = ___set_heartbeat_interval (___FLONUM_VAL(___ARG1));
-   ___RESULT = ___ARG2;
+   ___F64VECTORSET(___ARG1,
+                   ___ARG2,
+                   ___get_heartbeat_interval ());
+
+   ___RESULT = ___VOID;
 
 end-of-code
 
-   seconds
-   (let ()
-     (##declare (not constant-fold)) ;; force allocation of a flonum
-     (##fixnum->flonum 0))))
+   u64vect
+   i))
+
+(define-prim (##set-heartbeat-interval! seconds)
+  (##declare (not interrupts-enabled))
+  (##c-code #<<end-of-code
+
+   ___set_heartbeat_interval (___FLONUM_VAL(___ARG1));
+
+   ___RESULT = ___VOID;
+
+end-of-code
+
+   seconds))
 
 ;;;----------------------------------------------------------------------------
 
@@ -1635,6 +1668,25 @@ end-of-code
   (macro-raise
    (macro-make-constant-multiple-c-return-exception)))
 
+(implement-library-type-wrong-processor-c-return-exception)
+
+(define-prim (##raise-wrong-processor-c-return-exception)
+  (##declare (not interrupts-enabled))
+  (macro-raise
+   (macro-make-constant-wrong-processor-c-return-exception)))
+
+(define ##c-return-on-other-processor-hook #f)
+
+(define-prim (##c-return-on-other-processor-hook-set! x)
+  (set! ##c-return-on-other-processor-hook x))
+
+(define-prim (##c-return-on-other-processor id)
+  (##declare (not interrupts-enabled))
+  (let ((proc ##c-return-on-other-processor-hook))
+    (if (##procedure? proc)
+        (proc id)
+        (##raise-wrong-processor-c-return-exception))))
+
 (implement-library-type-number-of-arguments-limit-exception)
 
 (define-prim (##raise-number-of-arguments-limit-exception proc args)
@@ -1886,11 +1938,12 @@ end-of-code
     (macro-fifo-insert-at-head! registry will)
     will))
 
-(##interrupt-vector-set! 4 ;; ___INTR_GC
-  (lambda ()
-    (##declare (not interrupts-enabled))
-    (##gc-finalize!)
-    (##execute-jobs! ##gc-interrupt-jobs)))
+(define-prim (##handle-gc-interrupt!)
+  (##declare (not interrupts-enabled))
+  (##gc-finalize!)
+  (##execute-jobs! ##gc-interrupt-jobs))
+
+(##interrupt-vector-set! 4 ##handle-gc-interrupt!) ;; ___INTR_GC
 
 ;;;----------------------------------------------------------------------------
 
@@ -3727,6 +3780,13 @@ end-of-code
   (##declare (not interrupts-enabled))
   (##continuation-next! (##continuation-copy cont)))
 
+(define-prim (##continuation-last cont)
+  (let loop ((cont cont))
+    (let ((next (##continuation-next cont)))
+      (if next
+          (loop next)
+          cont))))
+
 ;;;----------------------------------------------------------------------------
 
 ;;; Symbols and keywords.
@@ -4413,6 +4473,12 @@ end-of-code
    "___RESULT = ___os_condvar_select (___ARG1, ___ARG2);"
    devices
    timeout))
+
+(define-prim (##device-select-abort! processor)
+  (##declare (not interrupts-enabled))
+  (##c-code
+   "___device_select_abort (___PSTATE_FROM_PROCESSOR_ID(___INT(___ARG1),___VMSTATE_FROM_PSTATE(___ps)));"
+   processor))
 
 (define-prim ##os-port-decode-chars!
   (c-lambda (scheme-object

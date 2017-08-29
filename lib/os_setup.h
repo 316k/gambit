@@ -8,6 +8,7 @@
 #include "os.h"
 #include "os_tty.h"
 #include "os_time.h"
+#include "os_io.h"
 
 
 /*---------------------------------------------------------------------------*/
@@ -15,14 +16,6 @@
 /* Miscellaneous POSIX utility functions. */
 
 #ifdef USE_POSIX
-
-extern ___sigset_type ___block_signal
-   ___P((int signum),
-        ());
-
-extern void ___restore_sigmask
-   ___P((___sigset_type oldmask),
-        ());
 
 extern pid_t ___waitpid_no_EINTR
    ___P((pid_t pid,
@@ -68,23 +61,7 @@ extern void ___close_half_duplex_pipe
 
 /* Interrupt handling. */
 
-extern ___SCMOBJ ___setup_os_interrupt_handling ___PVOID;
-
-extern void ___cleanup_os_interrupt_handling ___PVOID;
-
-typedef struct ___mask_os_interrupts_state_struct
-  {
-    ___mask_user_interrupts_state user_interrupt;
-    ___mask_heartbeat_interrupts_state heartbeat_interrupt;
-  } ___mask_os_interrupts_state;
-
-extern void ___mask_os_interrupts_begin
-   ___P((___mask_os_interrupts_state *state),
-        ());
-
-extern void ___mask_os_interrupts_end
-   ___P((___mask_os_interrupts_state *state),
-        ());
+extern void ___cleanup_all_interrupt_handling ___PVOID;
 
 
 /* CPU information. */
