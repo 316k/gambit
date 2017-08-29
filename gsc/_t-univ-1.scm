@@ -615,8 +615,6 @@
 (univ-prim-proc-add! '("##univ-table-delete" (2) #f 0 0 (#f) extended))
 (univ-prim-proc-add! '("##univ-table-length" (1) #f 0 0 number extended))
 
-(univ-prim-proc-add! '("##flonum-printout-host" (2) #f 0 0 string extended))
-
 (define (univ-switch-testable? targ obj)
   ;;(pretty-print (list 'univ-switch-testable? 'targ obj))
   #f);;;;;;;;;;;;;;;;;;;;;;;;;;;;

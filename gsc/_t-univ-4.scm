@@ -862,12 +862,10 @@
    (lambda (ctx return arg)
      (return (^bool #t)))))
 
-(univ-define-prim "##flonum-printout-host" #t
+(univ-define-prim "##flonum->string-host" #t
   (make-translated-operand-generator
-   (lambda (ctx return v sign-prefix)
-     (return (^str->string
-              (^concat (^string->str sign-prefix)
-                       (^float-tostr (^flonum-unbox v))))))))
+   (lambda (ctx return v)
+     (return (^str->string (^float-tostr (^flonum-unbox v)))))))
 
 ;;TODO: make variadic, complete, clean up and test
 (univ-define-prim "##flmax" #t
@@ -3275,9 +3273,9 @@
      (^ (^assign (^array-index (^bignum-digits arg1)
                                (^fixnum-unbox arg2))
                  (^cast* 'bigdigit
-                         (^+ univ-mdigit-base
-                             (^bitnot (^array-index (^bignum-digits arg1)
-                                                    (^fixnum-unbox arg2))))))
+                         (^bitxor (^array-index (^bignum-digits arg1)
+                                                (^fixnum-unbox arg2))
+                                  (^int univ-mdigit-base-minus-1))))
         (return arg1)))))
 
 ;;----------------------------------------------------------------------------
